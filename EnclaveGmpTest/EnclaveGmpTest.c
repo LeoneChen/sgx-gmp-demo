@@ -298,7 +298,7 @@ void e_calc_pi (mpf_t *pi, uint64_t digits)
 {
 	uint64_t k, n;
 	mp_bitcnt_t precision;
-	static double bits= log2(10);
+	/* static */ double bits= log2(10);
 	mpz_t kf, kf3, threekf, sixkf, z1, z2, c4k, c5_3k;
 	mpf_t C, sum, div, f2;
 

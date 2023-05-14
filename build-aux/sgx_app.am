@@ -17,7 +17,20 @@ if SGX_ENABLED
 ## All Intel SGX applications need at least these flags
 
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
-AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
+AM_CFLAGS = -flegacy-pass-manager \
+	-Xclang -load -Xclang $(SGXSDK_LIBDIR)/libSGXFuzzerPass.so
+AM_CXXFLAGS = -flegacy-pass-manager \
+	-Xclang -load -Xclang $(SGXSDK_LIBDIR)/libSGXFuzzerPass.so
+AM_LDFLAGS = -L$(SGXSDK_LIBDIR) \
+	-ldl \
+	-Wl,-rpath=$(SGXSDK_LIBDIR) \
+	-Wl,-whole-archive -lSGXSanRTApp -Wl,-no-whole-archive \
+	-lSGXFuzzerRT \
+	-lcrypto \
+	-lboost_program_options \
+	-rdynamic \
+	-lnyx_agent \
+	-l$(SGX_UAE_SERVICE_LIB)
 else
 AM_CPPFLAGS = 
 AM_LDFLAGS = 
@@ -33,5 +46,5 @@ SGX_UAE_SERVICE_LIB=@SGX_UAE_SERVICE_LIB@
 
 if SGX_ENABLED
 %_u.h %_u.c: %.edl
-	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $<
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $< --dump-parse Enclave.edl.json
 endif

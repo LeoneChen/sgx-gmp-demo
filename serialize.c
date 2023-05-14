@@ -109,7 +109,7 @@ int mpz_deserialize(mpz_t *val, char *s)
 
 int mpf_deserialize(mpf_t *val, char *s, int digits)
 {
-	static double bits= log2(10);
+	/* static */ double bits= log2(10);
 
 	mpf_set_prec(*val, (digits*bits)+1);
 

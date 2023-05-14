@@ -93,4 +93,20 @@ EnclaveGmpTest.signed.so: EnclaveGmpTest/EnclaveGmpTest.signed.so
 
 sgxgmpmath_LDADD=-l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -lpthread 
 sgxgmppi_LDADD=-l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -lpthread 
+sgxgmpmath_LINK= $(CXX) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+sgxgmppi_LINK= $(CXX) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
+%_u.o: %_u.c
+	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+
+%.o: %.c
+	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+	objcopy --redefine-sym main=__hidden_main \
+		--redefine-sym global_eid=__hidden_global_eid \
+		--redefine-sym sgx_ecall=__hidden_sgx_ecall \
+		--redefine-sym sgx_ocall=__hidden_sgx_ocall \
+		--redefine-sym sgx_create_enclave=__hidden_sgx_create_enclave \
+		--redefine-sym sgx_destroy_enclave=__hidden_sgx_destroy_enclave \
+		$@

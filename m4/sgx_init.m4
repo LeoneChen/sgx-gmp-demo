@@ -29,7 +29,7 @@ AC_DEFUN([SGX_INIT],[
 	AC_ARG_WITH([sgxsdk],
 		[AS_HELP_STRING([--with-sgxsdk=path],
 			[Set the path to your Intel SGX SDK directory (defaults to auto-detection)])
-		], [SGXSDK=$withval],[SGXSDK="detect"])
+		], [SGX_SDK=$withval],[SGX_SDK="detect"])
 
 	AS_IF([test "x$sgxsim" = "yes"], [sgxenable=yes])
 	AS_IF([test "x$sgxenable" != "xno"],
@@ -138,14 +138,23 @@ AC_DEFUN([SGX_INIT],[
 	dnl Substitutions for building an enclave
 
 	AC_SUBST(SGX_ENCLAVE_CFLAGS,
-	 	["-nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
+	 	["-fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector \
+		-flto -fno-discard-value-names"])
 	AC_SUBST(SGX_ENCLAVE_CPPFLAGS, 
-		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
-	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, ["-nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc -DHAVE_SGX"])
+	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, ["-fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector \
+		-flto -fno-discard-value-names"])
 	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
-		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
+		["-L\$(SGXSDK_LIBDIR)"])
 	AC_SUBST(SGX_ENCLAVE_LDADD,
-		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
+		["-Wl,--whole-archive -lSGXSanRTEnclave \$(SGX_EXTRA_TLIBS) -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bsymbolic -Wl,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0 \
+		-fuse-ld=lld \
+		-Wl,-save-temps \
+		-Wl,--lto-legacy-pass-manager \
+		-Wl,-mllvm=-load=\$(SGXSDK_LIBDIR)/libSGXSanPass.so \
+		-Wl,-mllvm=-enable-slsan=true \
+		-Wl,-mllvm=--stat=false \
+		--shared"])
 
 	])
 

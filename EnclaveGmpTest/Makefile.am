@@ -88,11 +88,11 @@ BUILT_SOURCES = serialize.c serialize.h
 
 ## Need to built these separately for the enclave.
 
-serialize.c: ../serialize.c
-	ln -s ../serialize.c
+serialize.c: $(top_srcdir)/serialize.c
+	ln -s $<
 
-serialize.h: ../serialize.h
-	ln -s ../serialize.h
+serialize.h: $(top_srcdir)/serialize.h
+	ln -s $<
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put 
 ## libraries flags here (see below).
@@ -110,6 +110,7 @@ AM_LDFLAGS += $(TGMP_LDFLAGS)
 ## of the definition to make sure you pick up the right linker flags
 ## and SGX trusted libraries.
 
+EnclaveGmpTest_LINK= $(CC) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 EnclaveGmpTest_LDADD = @SGX_ENCLAVE_LDADD@
 
 
